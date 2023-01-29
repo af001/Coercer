@@ -20,7 +20,7 @@ VERSION = "2.4.1-blackhat-edition"
 
 def parseArgs():
     # Add args
-    mode_coerce = argparse.ArgumentParser(add_help=True, description="Automatic windows authentication coercer using various methods.")
+    mode_coerce = argparse.ArgumentParser(description="Automatic windows authentication coercer using various methods.")
     mode_coerce.add_argument("-v", "--verbose", default=False, action="store_true", help="Verbose mode (default: False)")
     # Adding the subparsers to the base parser
     subparsers = mode_coerce.add_subparsers(help="Mode", dest="mode", required=True)
