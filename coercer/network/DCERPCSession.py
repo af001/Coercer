@@ -21,7 +21,28 @@ class DCERPCSession(object):
         self.session = session
         self.target = target
 
-    def connect_ncacn_np(self, target, pipe, target_ip=None, debug=False):
+    def connect_ncacn_ip_tcp(self, target, port):
+        # When 445 and 139 ports closed, we have still can coerce via DCERPC (4915x/tcp):
+        self.target = target
+        ncan_target = fr'ncacn_ip_tcp:{target}[{port}]'
+        self._rpc_transport = transport.DCERPCTransportFactory(ncan_target)
+
+        if hasattr(self._rpc_transport, 'set_credentials'):
+            self._rpc_transport.set_credentials(
+                username=self.credentials.username,
+                password=self.credentials.password,
+                domain=self.credentials.domain)
+
+        self.session.set_auth_level(RPC_C_AUTHN_LEVEL_PKT_PRIVACY)
+        try:
+            self.session.connect()
+        except Exception as e:
+            if self._verbose:
+                print(f'Error: {e}')
+
+        return self.session
+
+    def connect_ncacn_np(self, target, pipe, target_ip=None):
 
         self.target = target
         ncan_target = fr'ncacn_np:{target}[{pipe}]'
@@ -46,26 +67,17 @@ class DCERPCSession(object):
         self.session.set_auth_level(RPC_C_AUTHN_LEVEL_PKT_PRIVACY)
 
         # Connecting to named pipe
-        if debug:
-            print(f" > Connecting to {ncan_target} ... ")
-            sys.stdout.flush()
-
         try:
             self.session.connect()
         except Exception as e:
-            if debug:
+            if self._verbose:
                 print(f'Error: {e}')
             return None
-        else:
-            if debug:
-                print('Success')
+
         return self.session
 
     def bind(self, interface_uuid, interface_version, debug=False):
         """Binding to interface"""
-        if debug:
-            print(f" > Binding to interface <uuid='{interface_uuid} version='{interface_version}'> ... ")
-            sys.stdout.flush()
         try:
             self.session.bind(uuidtup_to_bin((interface_uuid, interface_version)))
         except Exception as e:

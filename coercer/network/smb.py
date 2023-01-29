@@ -7,49 +7,22 @@
 
 import sys
 from impacket.dcerpc.v5 import transport
+from impacket.dcerpc.v5.rpcrt import RPC_C_AUTHN_WINNT, RPC_C_AUTHN_LEVEL_PKT_PRIVACY
 from impacket.uuid import uuidtup_to_bin
-from impacket.smbconnection import SMBConnection, SMB2_DIALECT_002, SMB2_DIALECT_21, SMB_DIALECT, SessionError
-
-
-def init_smb_session(args, domain, username, password, address, lmhash, nthash, verbose=False):
-    smbClient = SMBConnection(address, args.target_ip, sess_port=int(args.port))
-    dialect = smbClient.getDialect()
-    if dialect == SMB_DIALECT:
-        if verbose:
-            print("[debug] SMBv1 dialect used")
-    elif dialect == SMB2_DIALECT_002:
-        if verbose:
-            print("[debug] SMBv2.0 dialect used")
-    elif dialect == SMB2_DIALECT_21:
-        if verbose:
-            print("[debug] SMBv2.1 dialect used")
-    else:
-        if verbose:
-            print("[debug] SMBv3.0 dialect used")
-    if args.k is True:
-        smbClient.kerberosLogin(username, password, domain, lmhash, nthash, args.aesKey, args.dc_ip)
-    else:
-        smbClient.login(username, password, domain, lmhash, nthash)
-    if smbClient.isGuestSession() > 0:
-        if verbose:
-            print("[debug] GUEST Session Granted")
-    else:
-        if verbose:
-            print("[debug] USER Session Granted")
-    return smbClient
+from impacket.smbconnection import SMBConnection, SessionError
 
 
 def try_login(credentials, target, port=445, verbose=False):
-    """Documentation for try_login"""
+    """Try login"""
     # Checking credentials if any
     if not credentials.is_anonymous():
         try:
-            smbClient = SMBConnection(
+            smb_client = SMBConnection(
                 remoteName=target,
                 remoteHost=target,
                 sess_port=int(port)
             )
-            smbClient.login(
+            smb_client.login(
                 user=credentials.username,
                 password=credentials.password,
                 domain=credentials.domain,
@@ -62,6 +35,7 @@ def try_login(credentials, target, port=445, verbose=False):
                 print("  | Error: %s" % str(e))
             return False
         else:
+            smb_client.close()
             return True
     else:
         return True
@@ -119,16 +93,13 @@ def list_remote_pipes(target, credentials, share='IPC$', maxdepth=-1, debug=Fals
     return pipes
 
 
+def can_connect(target, pipe, credentials, uuid, version):
 
-def can_connect_to_pipe(target, pipe, credentials, targetIp=None, verbose=False):
-    """
-    Function can_connect_to_pipe(target, pipe, credentials, targetIp=None, verbose=False)
-    """
-    ncan_target = r'ncacn_np:%s[%s]' % (target, pipe)
-    __rpctransport = transport.DCERPCTransportFactory(ncan_target)
+    ncan_target = fr'ncacn_np:{target}[{pipe}]'
+    _rpctransport = transport.DCERPCTransportFactory(ncan_target)
 
-    if hasattr(__rpctransport, 'set_credentials'):
-        __rpctransport.set_credentials(
+    if hasattr(_rpctransport, 'set_credentials'):
+        _rpctransport.set_credentials(
             username=credentials.username,
             password=credentials.password,
             domain=credentials.domain,
@@ -137,96 +108,23 @@ def can_connect_to_pipe(target, pipe, credentials, targetIp=None, verbose=False)
         )
 
     if credentials.doKerberos:
-        __rpctransport.set_kerberos(credentials.doKerberos, kdcHost=credentials.kdcHost)
-    if targetIp is not None:
-        __rpctransport.setRemoteHost(targetIp)
+        _rpctransport.set_kerberos(credentials.doKerberos, kdcHost=credentials.kdcHost)
 
-    dce = __rpctransport.get_dce_rpc()
-    # dce.set_auth_type(RPC_C_AUTHN_WINNT)
-    # dce.set_auth_level(RPC_C_AUTHN_LEVEL_PKT_PRIVACY)
+    dce = _rpctransport.get_dce_rpc()
+    dce.set_auth_type(RPC_C_AUTHN_WINNT)
+    dce.set_auth_level(RPC_C_AUTHN_LEVEL_PKT_PRIVACY)
 
-    if verbose:
-        print("         [>] Connecting to %s ... " % ncan_target, end="")
-    sys.stdout.flush()
+    # Try to connect
     try:
         dce.connect()
-    except Exception as e:
-        if verbose:
-            print("\x1b[1;91mfail\x1b[0m")
-            print("      [!] Something went wrong, check error status => %s" % str(e))
-        return None
-    else:
-        if verbose:
-            print("\x1b[1;92msuccess\x1b[0m")
-        return dce
-
-
-def can_bind_to_interface(target, pipe, credentials, uuid, version, targetIp=None, verbose=False):
-    """
-    Function can_bind_to_interface(target, pipe, credentials, uuid, version, targetIp=None, verbose=False)
-    """
-    ncan_target = r'ncacn_np:%s[%s]' % (target, pipe)
-    __rpctransport = transport.DCERPCTransportFactory(ncan_target)
-
-    if hasattr(__rpctransport, 'set_credentials'):
-        __rpctransport.set_credentials(
-            username=credentials.username,
-            password=credentials.password,
-            domain=credentials.domain,
-            lmhash=credentials.lmhash,
-            nthash=credentials.nthash
-        )
-
-    if credentials.doKerberos:
-        __rpctransport.set_kerberos(credentials.doKerberos, kdcHost=credentials.kdcHost)
-    if targetIp is not None:
-        __rpctransport.setRemoteHost(targetIp)
-
-    dce = __rpctransport.get_dce_rpc()
-    # dce.set_auth_type(RPC_C_AUTHN_WINNT)
-    # dce.set_auth_level(RPC_C_AUTHN_LEVEL_PKT_PRIVACY)
-
-    if verbose:
-        print("         [>] Connecting to %s ... " % ncan_target, end="")
-    sys.stdout.flush()
-    try:
-        dce.connect()
-    except Exception as e:
-        if verbose:
-            print("\x1b[1;91mfail\x1b[0m")
-            print("      [!] Something went wrong, check error status => %s" % str(e))
+    except Exception:
         return False
 
-    if verbose:
-        print("         [>] Binding to <uuid='%s', version='%s'> ... " % (uuid, version), end="")
-    sys.stdout.flush()
+    # Try to bind
     try:
         dce.bind(uuidtup_to_bin((uuid, version)))
-    except Exception as e:
-        if verbose:
-            print("\x1b[1;91mfail\x1b[0m")
-            print("         [!] Something went wrong, check error status => %s" % str(e))
-        if "STATUS_PIPE_DISCONNECTED" in str(e):
-            # SMB SessionError: STATUS_PIPE_DISCONNECTED()
-            return False
-        elif "STATUS_OBJECT_NAME_NOT_FOUND" in str(e):
-            # SMB SessionError: STATUS_OBJECT_NAME_NOT_FOUND(The object name is not found.)
-            return False
-        elif "STATUS_ACCESS_DENIED" in str(e):
-            # SMB SessionError: STATUS_ACCESS_DENIED({Access Denied} A process has requested access to an object but has not been granted those access rights.)
-            return False
-        elif "abstract_syntax_not_supported" in str(e):
-            # Bind context 1 rejected: provider_rejection; abstract_syntax_not_supported (this usually means the interface isn't listening on the given endpoint)
-            return False
-        elif "Unknown DCE RPC packet type received" in str(e):
-            # Unknown DCE RPC packet type received: 11
-            return False
-        elif "Authentication type not recognized" in str(e):
-            # DCERPC Runtime Error: code: 0x8 - Authentication type not recognized
-            return False
-        else:
-            return True
+    except Exception:
+        return False
     else:
-        if verbose:
-            print("\x1b[1;92msuccess\x1b[0m")
+        dce.disconnect()
         return True

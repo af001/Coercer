@@ -9,9 +9,7 @@ import json
 
 
 class Reporter(object):
-    """
-    Documentation for class Reporter
-    """
+    """Reporter Class"""
 
     def __init__(self, options, verbose=False):
         super(Reporter, self).__init__()
@@ -50,6 +48,5 @@ class Reporter(object):
         else:
             path_to_file = filename
         # export
-        f = open(path_to_file, "a")
-        f.write(json.dumps(self.test_results, indent=4))
-        f.close()
+        with open(path_to_file, "a") as f:
+            f.write(json.dumps(self.test_results, indent=4))

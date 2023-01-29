@@ -5,9 +5,8 @@
 # Date created       : 15 Sep 2022
 
 from coercer.models.MSPROTOCOLRPCCALL import MSPROTOCOLRPCCALL
-from coercer.network.DCERPCSessionError import DCERPCSessionError
-from impacket.dcerpc.v5.ndr import NDRCALL, NDRSTRUCT
-from impacket.dcerpc.v5.dtypes import UUID, ULONG, WSTR, DWORD, LONG, NULL, BOOL, UCHAR, PCHAR, RPC_SID, LPWSTR, GUID
+from impacket.dcerpc.v5.ndr import NDRCALL
+from impacket.dcerpc.v5.dtypes import WSTR
 
 
 class _IsPathSupported(NDRCALL):
@@ -56,7 +55,7 @@ class IsPathSupported(MSPROTOCOLRPCCALL):
         "vulnerable_arguments": ["ShareName"]
     }
 
-    def trigger(self, dcerpc_session, target):
+    def trigger(self, dcerpc_session):
         if dcerpc_session is not None:
             try:
                 request = _IsPathSupported()
