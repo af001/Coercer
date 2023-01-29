@@ -20,11 +20,11 @@ VERSION = "2.4.1-blackhat-edition"
 
 def parseArgs():
     # Add args
-    mode_coerce = argparse.ArgumentParser(description="Automatic windows authentication coercer using various methods.")
+    mode_coerce = argparse.ArgumentParser(add_help=True, description="Automatic windows authentication coercer using various methods.")
     mode_coerce.add_argument("-v", "--verbose", default=False, action="store_true", help="Verbose mode (default: False)")
     # Adding the subparsers to the base parser
     subparsers = mode_coerce.add_subparsers(help="Mode", dest="mode", required=True)
-    mode_coerce_parser = subparsers.add_parser("coerce", parents=[mode_coerce], help="Trigger authentications through all known methods with known working paths")
+    mode_coerce_parser = subparsers.add_parser("coerce", parents=[mode_coerce])
     # Advanced configuration
     mode_coerce_advanced_config = mode_coerce_parser.add_argument_group("Advanced configuration")
     mode_coerce_advanced_config.add_argument("--export-json", default=None, type=str, help="Export results to specified JSON file.")
