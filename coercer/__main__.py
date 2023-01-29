@@ -16,38 +16,29 @@ from coercer.core.loader import find_and_load_coerce_methods
 from coercer.network.smb import try_login
 
 
-VERSION = "2.4.1.1-blackhat-edition"
-
-banner = """       ______
-      / ____/___  ___  _____________  _____
-     / /   / __ \\/ _ \\/ ___/ ___/ _ \\/ ___/
-    / /___/ /_/ /  __/ /  / /__/  __/ /      v%s
-    \\____/\\____/\\___/_/   \\___/\\___/_/       by @podalirius_
-""" % VERSION
-
+VERSION = "2.4.1-blackhat-edition"
 
 def parseArgs():
-    print(banner)
-    parser = argparse.ArgumentParser(add_help=True, description="Automatic windows authentication coercer using various methods.")
-    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Verbose mode (default: False)")
-
-    # Subparser
-    mode_coerce = argparse.ArgumentParser(add_help=False)
+    # Add args
+    mode_coerce = argparse.ArgumentParser(add_help=True, description="Automatic windows authentication coercer using various methods.")
     mode_coerce.add_argument("-v", "--verbose", default=False, action="store_true", help="Verbose mode (default: False)")
+    # Adding the subparsers to the base parser
+    subparsers = mode_coerce.add_subparsers(help="Mode", dest="mode", required=True)
+    mode_coerce_parser = subparsers.add_parser("coerce", parents=[mode_coerce], help="Trigger authentications through all known methods with known working paths")
     # Advanced configuration
-    mode_coerce_advanced_config = mode_coerce.add_argument_group("Advanced configuration")
+    mode_coerce_advanced_config = mode_coerce_parser.add_argument_group("Advanced configuration")
     mode_coerce_advanced_config.add_argument("--export-json", default=None, type=str, help="Export results to specified JSON file.")
     mode_coerce_advanced_config.add_argument("--delay", default=None, type=int, help="Delay between attempts (in seconds)")
     mode_coerce_advanced_config.add_argument("--http-port", default=80, type=int, help="HTTP port (default: 80)")
     mode_coerce_advanced_config.add_argument("--smb-port", default=445, type=int, help="SMB port (default: 445)")
     mode_coerce_advanced_config.add_argument("--auth-type", default='smb', type=str, help="Desired authentication type ('smb' or 'http').")
     # Filters
-    mode_coerce_filters = mode_coerce.add_argument_group("Filtering")
+    mode_coerce_filters = mode_coerce_parser.add_argument_group("Filtering")
     mode_coerce_filters.add_argument("--filter-method-name", default=[], action='append', type=str, help="")
     mode_coerce_filters.add_argument("--filter-protocol-name", default=[], action='append', type=str, help="")
     mode_coerce_filters.add_argument("--filter-pipe-name", default=[], action='append', type=str, help="")
     # Credentials
-    mode_coerce_credentials = mode_coerce.add_argument_group("Credentials")
+    mode_coerce_credentials = mode_coerce_parser.add_argument_group("Credentials")
     mode_coerce_credentials.add_argument("-u", "--username", default="", help="Username to authenticate to the machine.")
     mode_coerce_credentials.add_argument("-p", "--password", default="", help="Password to authenticate to the machine. (if omitted, it will be asked unless -no-pass is specified)")
     mode_coerce_credentials.add_argument("-d", "--domain", default="", help="Windows domain name to authenticate to the machine.")
@@ -55,18 +46,17 @@ def parseArgs():
     mode_coerce_credentials.add_argument("--no-pass", action="store_true", help="Don't ask for password (useful for -k)")
     mode_coerce_credentials.add_argument("--dc-ip", action="store", metavar="ip address", help="IP Address of the domain controller. If omitted it will use the domain part (FQDN) specified in the target parameter")
     # Targets source
-    mode_coerce_targets_source = mode_coerce.add_mutually_exclusive_group(required=True)
+    mode_coerce_targets_source = mode_coerce_parser.add_mutually_exclusive_group(required=True)
     mode_coerce_targets_source.add_argument("-t", "--target-ip", default=None, help="IP address or hostname of the target machine")
     mode_coerce_targets_source.add_argument("-f", "--targets-file", default=None, help="File containing a list of IP address or hostname of the target machines")
     # Listener
-    listener_group = mode_coerce.add_argument_group("Listener")
+    listener_group = mode_coerce_parser.add_argument_group("Listener")
     listener_group.add_argument("-l", "--listener-ip", required=True, type=str, help="IP address or hostname of the listener machine")
+    # Scan mode
+    scan_group = mode_coerce_parser.add_argument_group("Scan")
+    scan_group.add_argument("--scan", action="store_true", default=False, help="Use scan mode. Sets up SMB and HTTP server based on auth_type")
 
-    # Adding the subparsers to the base parser
-    subparsers = parser.add_subparsers(help="Mode", dest="mode", required=True)
-    mode_coerce_parser = subparsers.add_parser("coerce", parents=[mode_coerce], help="Trigger authentications through all known methods with known working paths")
-
-    options = parser.parse_args()
+    options = mode_coerce.parse_args()
 
     # Parsing hashes
     lmhash, nthash = '', ''

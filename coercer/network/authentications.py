@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # File name          : authentications.py
 # Author             : Podalirius (@podalirius_)
-# Date created       : 21 Sep 2022
 
 import time
 from coercer.structures.TestResult import TestResult
@@ -10,20 +9,19 @@ from concurrent.futures import ThreadPoolExecutor
 from coercer.network.Listener import Listener
 
 
-def trigger_and_catch_authentication(options, dcerpc_session, target, method_trigger_function, listener_type,
-                                     listen_ip=None):
+def trigger_and_catch_authentication(options, dcerpc_session, target, method_trigger_function):
 
-    listener_type = listener_type.lower()
+    listener_type = options.auth_type.lower()
     if listener_type not in ["smb", "http"]:
         if options.verbose:
             print(f"[!] Unknown listener type '{listener_type}'")
-        return False
+        return None
     else:
         control_structure = {"result": TestResult.NO_AUTH_RECEIVED}
         # Waits for all the threads to be completed
 
         with ThreadPoolExecutor(max_workers=3) as tp:
-            listener_instance = Listener(options=options, listen_ip=listen_ip)
+            listener_instance = Listener(options=options)
 
             if listener_type == "smb":
                 tp.submit(listener_instance.start_server, control_structure)

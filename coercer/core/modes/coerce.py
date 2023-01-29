@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 # File name          : scan.py
 # Author             : Podalirius (@podalirius_)
-# Date created       : 18 Sep 2022
 
 
 import time
 from coercer.core.utils import generate_exploit_path_from_template, generate_tasks, generate_filter
 from coercer.network.DCERPCSession import DCERPCSession
 from coercer.structures.TestResult import TestResult
-from coercer.network.authentications import trigger_authentication
+from coercer.network.authentications import trigger_authentication, trigger_and_catch_authentication
 from coercer.network.smb import can_connect
 from coercer.network.utils import get_ip_addr_to_listen_on
 
@@ -57,18 +56,24 @@ def action_coerce(target, available_methods, options, credentials, reporter):
                             if dcerpc.session is not None:
                                 dcerpc.bind(interface_uuid=uuid, interface_version=version)
                                 if dcerpc.session is not None:
-                                    result = trigger_authentication(
-                                        dcerpc_session=dcerpc.session,
-                                        target=target,
-                                        method_trigger_function=msprotocol_rpc_instance.trigger
-                                    )
+
+                                    if options.scan:
+                                        result = trigger_and_catch_authentication(
+                                            options=options,
+                                            dcerpc_session=dcerpc.session,
+                                            target=target,
+                                            method_trigger_function=msprotocol_rpc_instance.trigger)
+                                    else:
+                                        result = trigger_authentication(
+                                            dcerpc_session=dcerpc.session,
+                                            target=target,
+                                            method_trigger_function=msprotocol_rpc_instance.trigger)
 
                                     reporter.report_test_result(
                                         target=target, uuid=uuid, version=version, namedpipe=named_pipe,
                                         msprotocol_rpc_instance=msprotocol_rpc_instance,
                                         result=result,
-                                        exploitpath=exploit_path
-                                    )
+                                        exploitpath=exploit_path)
 
                                     if result == TestResult.NCA_S_UNK_IF:
                                         stop_exploiting_this_function = True

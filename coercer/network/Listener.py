@@ -12,13 +12,13 @@ from coercer.structures.TestResult import TestResult
 class Listener(object):
     """Class Listener"""
 
-    def __init__(self, options, listen_ip=None, timeout=None):
+    def __init__(self, options, timeout=None):
         super(Listener, self).__init__()
 
         self.smb_port = options.smb_port if options.smb_port else 445
         self.http_port = options.http_port if options.http_port else 80
-        self.timeout = timeout if timeout is not None else 1
-        self.listen_ip = listen_ip if listen_ip is not None else '0.0.0.0'
+        self.timeout = timeout if timeout is not None else 2
+        self.listen_ip = options.listener_ip if options.listener_ip is not None else '0.0.0.0'
         self.auth_type = options.auth_type if options.auth_type is not None else 'smb'
 
     def start_server(self, control_structure):
