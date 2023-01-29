@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 # File name          : smb.py
 # Author             : Podalirius (@podalirius_)
-# Date created       : 17 Sep 2022
 
 
 import sys
 from impacket.dcerpc.v5 import transport
 from impacket.dcerpc.v5.rpcrt import RPC_C_AUTHN_WINNT, RPC_C_AUTHN_LEVEL_PKT_PRIVACY
 from impacket.uuid import uuidtup_to_bin
-from impacket.smbconnection import SMBConnection, SessionError
+from impacket.smbconnection import SMBConnection
 
 
 def try_login(credentials, target, port=445, verbose=False):
