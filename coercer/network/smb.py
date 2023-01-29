@@ -41,58 +41,6 @@ def try_login(credentials, target, port=445, verbose=False):
         return True
 
 
-def list_remote_pipes(target, credentials, share='IPC$', maxdepth=-1, debug=False):
-    """Function list_remote_pipes(target, credentials, share='IPC$', maxdepth=-1, debug=False)"""
-    pipes = []
-    try:
-        smbClient = SMBConnection(target, target, sess_port=int(445))
-        dialect = smbClient.getDialect()
-        if credentials.doKerberos is True:
-            smbClient.kerberosLogin(credentials.username, credentials.password, credentials.domain, credentials.lmhash, credentials.nthash, credentials.aesKey, credentials.dc_ip)
-        else:
-            smbClient.login(credentials.username, credentials.password, credentials.domain, credentials.lmhash, credentials.nthash)
-        if smbClient.isGuestSession() > 0:
-            if debug:
-                print("[>] GUEST Session Granted")
-        else:
-            if debug:
-                print("[>] USER Session Granted")
-    except Exception as e:
-        if debug:
-            print(e)
-        return pipes
-
-    # Breadth-first search algorithm to recursively find .extension files
-    searchdirs = [""]
-    depth = 0
-    while len(searchdirs) != 0 and ((depth <= maxdepth) or (maxdepth == -1)):
-        depth += 1
-        next_dirs = []
-        for sdir in searchdirs:
-            if debug:
-                print("[>] Searching in %s " % sdir)
-            try:
-                for sharedfile in smbClient.listPath(share, sdir + "*", password=''):
-                    if sharedfile.get_longname() not in [".", ".."]:
-                        if sharedfile.is_directory():
-                            if debug:
-                                print("[>] Found directory %s/" % sharedfile.get_longname())
-                            next_dirs.append(sdir + sharedfile.get_longname() + "/")
-                        else:
-                            if debug:
-                                print("[>] Found file %s" % sharedfile.get_longname())
-                            full_path = sdir + sharedfile.get_longname()
-                            pipes.append(full_path)
-            except SessionError as e:
-                if debug:
-                    print("[error] %s " % e)
-        searchdirs = next_dirs
-        if debug:
-            print("[>] Next iteration with %d folders." % len(next_dirs))
-    pipes = sorted(list(set(["\\PIPE\\" + f for f in pipes])), key=lambda x: x.lower())
-    return pipes
-
-
 def can_connect(target, pipe, credentials, uuid, version):
 
     ncan_target = fr'ncacn_np:{target}[{pipe}]'

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # File name          : Listener.py
 # Author             : Podalirius (@podalirius_)
-# Date created       : 15 Sep 2022
 
 import socket
 import time
