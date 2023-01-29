@@ -57,8 +57,9 @@ def try_login(credentials, target, port=445, verbose=False):
                 nthash=credentials.nthash
             )
         except Exception as e:
-            print("[!] Could not login as '%s' with these credentials on '%s'." % (credentials.username, target))
-            print("  | Error: %s" % str(e))
+            if verbose:
+                print("[!] Could not login as '%s' with these credentials on '%s'." % (credentials.username, target))
+                print("  | Error: %s" % str(e))
             return False
         else:
             return True
@@ -67,9 +68,7 @@ def try_login(credentials, target, port=445, verbose=False):
 
 
 def list_remote_pipes(target, credentials, share='IPC$', maxdepth=-1, debug=False):
-    """
-    Function list_remote_pipes(target, credentials, share='IPC$', maxdepth=-1, debug=False)
-    """
+    """Function list_remote_pipes(target, credentials, share='IPC$', maxdepth=-1, debug=False)"""
     pipes = []
     try:
         smbClient = SMBConnection(target, target, sess_port=int(445))
@@ -99,7 +98,7 @@ def list_remote_pipes(target, credentials, share='IPC$', maxdepth=-1, debug=Fals
             if debug:
                 print("[>] Searching in %s " % sdir)
             try:
-                for sharedfile in smbClient.listPath(share, sdir + "*", password=None):
+                for sharedfile in smbClient.listPath(share, sdir + "*", password=''):
                     if sharedfile.get_longname() not in [".", ".."]:
                         if sharedfile.is_directory():
                             if debug:
@@ -116,7 +115,7 @@ def list_remote_pipes(target, credentials, share='IPC$', maxdepth=-1, debug=Fals
         searchdirs = next_dirs
         if debug:
             print("[>] Next iteration with %d folders." % len(next_dirs))
-    pipes = sorted(list(set(["\\PIPE\\" + f for f in pipes])), key=lambda x:x.lower())
+    pipes = sorted(list(set(["\\PIPE\\" + f for f in pipes])), key=lambda x: x.lower())
     return pipes
 
 

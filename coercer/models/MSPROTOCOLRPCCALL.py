@@ -4,8 +4,8 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 16 Sep 2022
 
-import jinja2
 from coercer.structures.MethodType import MethodType
+from sys import platform
 
 
 class MSPROTOCOLRPCCALL(object):
@@ -35,7 +35,9 @@ class MSPROTOCOLRPCCALL(object):
         
     def __str__(self):
         parameters = []
-        from sys import platform
+        parameter_template = ""
+        function_template = ""
+
         if platform == "linux" or platform == "linux2":
             # linux
             function_template = "%s──>\x1b[96m%s\x1b[0m(%s)"
@@ -48,7 +50,6 @@ class MSPROTOCOLRPCCALL(object):
             # Windows...
             function_template = "%s──>%s(%s)"
             parameter_template = "%s=%s"
-
 
         for arg in self.function["vulnerable_arguments"]:
             parameters.append(

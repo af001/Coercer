@@ -5,9 +5,7 @@
 # Date created       : 16 Sep 2022
 
 class Credentials(object):
-    """
-    Documentation for class Credentials
-    """
+    """Credential Class"""
 
     def __init__(self, username, password, domain, lmhash, nthash, doKerberos=False, kdcHost=None):
         super(Credentials, self).__init__()
@@ -20,18 +18,6 @@ class Credentials(object):
         self.kdcHost = kdcHost
 
     def is_anonymous(self):
-        """
-        Function is_anonymous()
-        Returns True if anonymous authentication is used False otherwise
+        """Returns True if anonymous authentication is used False otherwise"""
+        return True if self.username is None or len(self.username) == 0 else False
 
-        Returns:
-        bool:anonymous
-        """
-        anonymous = False
-        if self.username is None:
-            anonymous = True
-        elif len(self.username) == 0:
-            anonymous = True
-        else:
-            anonymous = False
-        return anonymous

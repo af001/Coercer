@@ -46,9 +46,7 @@ def get_ip_address_to_target_remote_host(host, port):
 
 
 def can_listen_on_port(listen_ip, port):
-    """
-    Function can_listen_on_port(listen_ip, port)
-    """
+    """Function can_listen_on_port(listen_ip, port)"""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(0.05)
@@ -61,9 +59,7 @@ def can_listen_on_port(listen_ip, port):
 
 
 def get_ip_addr_to_listen_on(target, options):
-    """
-    Function get_ip_addr_to_listen_on(target, options)
-    """
+    """Function get_ip_addr_to_listen_on(target, options)"""
     # Getting IP address to listen on
     listening_ip = None
     if options.ip_address is not None:

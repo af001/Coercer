@@ -8,6 +8,8 @@
 import random
 import jinja2
 
+from coercer.core.Filter import Filter
+
 
 def gen_random_name(length=8):
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -152,3 +154,40 @@ def generate_exploit_path_from_template(template, listener, http_listen_port=80,
         smb_listen_port=smb_listen_port
     )
     return exploit_path
+
+
+def generate_filter(filter_method_name, filter_protocol_name, filter_pipe_name):
+    return Filter(filter_method_name=filter_method_name, filter_protocol_name=filter_protocol_name,
+                  filter_pipe_name=filter_pipe_name)
+
+
+def generate_tasks(_filter, available_methods):
+
+    tasks = {}
+    for method_type in available_methods.keys():
+        for category in sorted(available_methods[method_type].keys()):
+            for method in sorted(available_methods[method_type][category].keys()):
+                instance = available_methods[method_type][category][method]["class"]
+
+                if _filter.method_matches_filter(instance):
+                    for access_type, access_methods in instance.access.items():
+                        if access_type not in tasks.keys():
+                            tasks[access_type] = {}
+
+                        # Access through SMB named pipe
+                        if access_type == "ncan_np":
+                            for access_method in access_methods:
+                                namedpipe, uuid, version = access_method["namedpipe"], access_method["uuid"], access_method["version"]
+                                if namedpipe not in tasks[access_type].keys():
+                                    tasks[access_type][namedpipe] = {}
+
+                                if uuid not in tasks[access_type][namedpipe].keys():
+                                    tasks[access_type][namedpipe][uuid] = {}
+
+                                if version not in tasks[access_type][namedpipe][uuid].keys():
+                                    tasks[access_type][namedpipe][uuid][version] = []
+
+                                if instance not in tasks[access_type][namedpipe][uuid][version]:
+                                    tasks[access_type][namedpipe][uuid][version].append(instance)
+
+    return tasks if len(tasks) > 0 else None

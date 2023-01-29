@@ -8,12 +8,9 @@ from enum import Enum
 
 
 class MethodType(Enum):
-    """
-    Enum class MethodType
-    """
+    """Enum class MethodType"""
 
     MICROSOFT_PROTOCOL = 0x01
-
     OTHER = 0xff
 
 

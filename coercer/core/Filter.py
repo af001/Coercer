@@ -5,9 +5,7 @@
 # Date created       : 15 Sep 2022
 
 class Filter(object):
-    """
-    Documentation for class Filter
-    """
+    """Filter Class"""
 
     def __init__(self, filter_method_name=None, filter_protocol_name=None, filter_pipe_name=None):
         super(Filter, self).__init__()

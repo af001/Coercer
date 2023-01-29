@@ -110,6 +110,9 @@ def parseArgs():
     mode_coerce.add_argument("-v", "--verbose", default=False, action="store_true", help="Verbose mode (default: False)")
     # Advanced configuration
     mode_coerce_advanced_config = mode_coerce.add_argument_group("Advanced configuration")
+    mode_coerce_advanced_config.add_argument("--export-json", default=None, type=str, help="Export results to specified JSON file.")
+    mode_coerce_advanced_config.add_argument("--export-xlsx", default=None, type=str, help="Export results to specified XLSX file.")
+    mode_coerce_advanced_config.add_argument("--export-sqlite", default=None, type=str, help="Export results to specified SQLITE3 database file.")
     mode_coerce_advanced_config.add_argument("--delay", default=None, type=int, help="Delay between attempts (in seconds)")
     mode_coerce_advanced_config.add_argument("--http-port", default=80, type=int, help="HTTP port (default: 80)")
     mode_coerce_advanced_config.add_argument("--smb-port", default=445, type=int, help="SMB port (default: 445)")
@@ -168,59 +171,48 @@ def main():
         targets = [options.target_ip]
     elif options.targets_file is not None:
         if os.path.exists(options.targets_file):
-            f = open(options.targets_file, 'r')
-            targets = sorted(list(set([line.strip() for line in f.readlines()])))
-            f.close()
-            reporter.print_verbose("Loaded %d targets." % len(targets))
+            with open(options.targets_file, 'r') as f:
+                targets = sorted(list(set([line.strip() for line in f.readlines()])))
         else:
-            print("[!] Could not open targets file '%s'." % options.targets_file)
-            sys.exit(0)
+            print(f"[!] Could not open targets file '{options.targets_file}'.")
+            sys.exit(1)
 
-    credentials = Credentials(username=options.username, password=options.password, domain=options.domain, lmhash=lmhash, nthash=nthash)
+    credentials = Credentials(username=options.username, password=options.password, domain=options.domain,
+                              lmhash=lmhash, nthash=nthash)
 
     # Processing actions
     if options.mode == "coerce":
-        reporter.print_info("Starting coerce mode")
         for target in targets:
-            reporter.print_info("Scanning target %s" % target)
             # Checking credentials if any
             if try_login(credentials, target, verbose=options.verbose):
                 # Starting action
                 action_coerce(target, available_methods, options, credentials, reporter)
+                # Reporting results
+                if options.export_json is not None:
+                    reporter.export_json(options.export_json)
 
     elif options.mode == "scan":
-        reporter.print_info("Starting scan mode")
         for target in targets:
-            reporter.print_info("Scanning target %s" % target)
             # Checking credentials if any
             if try_login(credentials, target, verbose=options.verbose):
                 # Starting action
                 action_scan(target, available_methods, options, credentials, reporter)
                 # Reporting results
                 if options.export_json is not None:
-                    reporter.exportJSON(options.export_json)
-                if options.export_xlsx is not None:
-                    reporter.exportXLSX(options.export_xlsx)
-                if options.export_sqlite is not None:
-                    reporter.exportSQLITE(target, options.export_sqlite)
+                    reporter.export_json(options.export_json)
 
     elif options.mode == "fuzz":
-        reporter.print_info("Starting fuzz mode")
         for target in targets:
-            reporter.print_info("Fuzzing target %s" % target)
             # Checking credentials if any
             if try_login(credentials, target, verbose=options.verbose):
                 # Starting action
                 action_fuzz(target, available_methods, options, credentials, reporter)
                 # Reporting results
                 if options.export_json is not None:
-                    reporter.exportJSON(options.export_json)
-                if options.export_xlsx is not None:
-                    reporter.exportXLSX(options.export_xlsx)
-                if options.export_sqlite is not None:
-                    reporter.exportSQLITE(target, options.export_sqlite)
+                    reporter.export_json(options.export_json)
 
     print("[+] All done! Bye Bye!")
+
 
 if __name__ == '__main__':
     main()

@@ -16,7 +16,7 @@ def find_and_load_coerce_methods(debug=False):
     Function find_and_load_coerce_methods()
 
     Parameters:
-        bool:debug Enable or disable debug output
+        bool: debug Enable or disable debug output
 
     Returns:
         list:coerce_methods
@@ -25,6 +25,7 @@ def find_and_load_coerce_methods(debug=False):
     search_dir = os.path.dirname(__file__) + os.path.sep + ".." + os.path.sep + "methods"
     if debug:
         print("[loader] Loading coerce methods from %s ..." % search_dir)
+
     sys.path.extend([search_dir])
     for _dir in os.listdir(search_dir):
         _dirpath = search_dir + os.path.sep + _dir
