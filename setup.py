@@ -81,9 +81,9 @@ with open('requirements.txt', 'r', encoding='utf-8') as f:
 
 setuptools.setup(
     name="coercer",
-    version="2.4.1",
+    version="2.4.1.1",
     description="",
-    url="https://github.com/p0dalirius/Coercer",
+    url="https://github.com/af001/Coercer",
     author="Podalirius",
     long_description=long_description,
     long_description_content_type="text/markdown",
