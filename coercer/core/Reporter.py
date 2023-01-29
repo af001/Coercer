@@ -9,7 +9,6 @@ import os
 import json
 import xlsxwriter
 import sys
-from coercer.structures.ReportingLevel import ReportingLevel
 from coercer.structures.TestResult import TestResult
 
 
@@ -28,30 +27,35 @@ class Reporter(object):
         self.verbose = verbose
         self.test_results = {}
 
-    def print_testing(self, msprotocol_rpc_instance):
+    @staticmethod
+    def print_testing(msprotocol_rpc_instance):
         print("      [>] (\x1b[93m%s\x1b[0m) %s " % ("-testing-", str(msprotocol_rpc_instance)))
         sys.stdout.flush()
 
-    def print_info(self, message):
+    @staticmethod
+    def print_info(message):
         print("\x1b[1m[\x1b[92minfo\x1b[0m\x1b[1m]\x1b[0m %s" % message)
         sys.stdout.flush()
 
-    def print_verbose(self, message):
+    @staticmethod
+    def print_verbose(message):
         print("[debug]",message)
 
-    def report_test_result(self, uuid, version, namedpipe, msprotocol_rpc_instance, result, exploitpath):
+    def report_test_result(self, target, uuid, version, namedpipe, msprotocol_rpc_instance, result, exploitpath):
         function_name = msprotocol_rpc_instance.function["name"]
+        if target not in self.test_results.keys():
+            self.test_results[target] = {}
         if uuid not in self.test_results.keys():
-            self.test_results[uuid] = {}
-        if version not in self.test_results[uuid].keys():
-            self.test_results[uuid][version] = {}
-        if function_name not in self.test_results[uuid][version].keys():
-            self.test_results[uuid][version][function_name] = {}
-        if namedpipe not in self.test_results[uuid][version][function_name].keys():
-            self.test_results[uuid][version][function_name][namedpipe] = []
+            self.test_results[target][uuid] = {}
+        if version not in self.test_results[target][uuid].keys():
+            self.test_results[target][uuid][version] = {}
+        if function_name not in self.test_results[target][uuid][version].keys():
+            self.test_results[target][uuid][version][function_name] = {}
+        if namedpipe not in self.test_results[target][uuid][version][function_name].keys():
+            self.test_results[target][uuid][version][function_name][namedpipe] = []
 
         # Save result to database
-        self.test_results[uuid][version][function_name][namedpipe].append({
+        self.test_results[target][uuid][version][function_name][namedpipe].append({
             "function": msprotocol_rpc_instance.function,
             "protocol": msprotocol_rpc_instance.protocol,
             "testresult": result.name,

@@ -109,7 +109,7 @@ def action_scan(target, available_methods, options, credentials, reporter):
                                         )
 
                                         reporter.report_test_result(
-                                            uuid=uuid, version=version, namedpipe=namedpipe,
+                                            target=target, uuid=uuid, version=version, namedpipe=namedpipe,
                                             msprotocol_rpc_instance=msprotocol_rpc_instance,
                                             result=result,
                                             exploitpath=exploitpath
