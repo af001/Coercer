@@ -37,16 +37,22 @@ class Reporter(object):
         if named_pipe not in self.test_results[target][uuid][version][function_name].keys():
             self.test_results[target][uuid][version][function_name][named_pipe] = []
 
-        # Save result to database
-        self.test_results[target][uuid][version][function_name][named_pipe].append({
+        # Create new dict entry
+        new_result = {
+            "target": target,
             "function": msprotocol_rpc_instance.function,
             "protocol": msprotocol_rpc_instance.protocol,
             "test_result": result.name,
             "named_pipe": exploit_path
-        })
+        }
+
+        # Save result to database
+        self.test_results[target][uuid][version][function_name][named_pipe].append(new_result)
 
         if self.options.export_json is not None:
             self.export_json()
+
+        print(new_result)
 
     def load_json(self):
         base_path = os.path.dirname(self.options.export_json)
