@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # File name          : TestResults.py
 # Author             : Podalirius (@podalirius_)
-# Date created       : 19 Sep 2022
 
 from enum import Enum
 
