@@ -7,8 +7,6 @@
 import os
 import json
 
-from coercer.structures.TestResult import TestResult
-
 
 class Reporter(object):
     """Reporter Class"""
@@ -17,7 +15,13 @@ class Reporter(object):
         super(Reporter, self).__init__()
         self.options = options
         self.verbose = verbose
-        self.test_results = {}
+
+        if self.options.export_json:
+            self.test_results = self.load_json()
+            if self.test_results is None:
+                self.test_results = {}
+        else:
+            self.test_results = {}
 
     def report_test_result(self, target, uuid, version, named_pipe, msprotocol_rpc_instance, result, exploit_path):
         function_name = msprotocol_rpc_instance.function["name"]
@@ -34,22 +38,26 @@ class Reporter(object):
             self.test_results[target][uuid][version][function_name][named_pipe] = []
 
         # Save result to database
-        if result.name == TestResult.SMB_AUTH_RECEIVED or result.name == TestResult.HTTP_AUTH_RECEIVED:
-            self.test_results[target][uuid][version][function_name][named_pipe].append({
-                "function": msprotocol_rpc_instance.function,
-                "protocol": msprotocol_rpc_instance.protocol,
-                "test_result": result.name,
-                "named_pipe": exploit_path
-            })
+        self.test_results[target][uuid][version][function_name][named_pipe].append({
+            "function": msprotocol_rpc_instance.function,
+            "protocol": msprotocol_rpc_instance.protocol,
+            "test_result": result.name,
+            "named_pipe": exploit_path
+        })
 
-            if self.options.export_json:
-                self.export_json(self.options.export_json)
+        if self.options.export_json:
+            self.export_json()
 
-        self.test_results = {}
+    def load_json(self):
+        if os.path.isfile(self.options.export_json):
+            with open(self.options.export_json, 'r') as f:
+                return json.load(f)
+        else:
+            return None
 
-    def export_json(self, filename):
-        base_path = os.path.dirname(filename)
-        filename = os.path.basename(filename)
+    def export_json(self):
+        base_path = os.path.dirname(self.options.export_json)
+        filename = os.path.basename(self.options.export_json)
         if base_path not in [".", ""]:
             if not os.path.exists(base_path):
                 os.makedirs(base_path)
@@ -57,5 +65,5 @@ class Reporter(object):
         else:
             path_to_file = filename
         # export
-        with open(path_to_file, "a") as f:
+        with open(path_to_file, "w") as f:
             f.write(json.dumps(self.test_results, indent=4))
