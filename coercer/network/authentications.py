@@ -20,7 +20,7 @@ def trigger_and_catch_authentication(options, dcerpc_session, target, method_tri
         control_structure = {"result": TestResult.NO_AUTH_RECEIVED}
         # Waits for all the threads to be completed
 
-        with ThreadPoolExecutor(max_workers=3) as tp:
+        with ThreadPoolExecutor(max_workers=10) as tp:
             listener_instance = Listener(options=options)
 
             if listener_type == "smb":
@@ -29,7 +29,7 @@ def trigger_and_catch_authentication(options, dcerpc_session, target, method_tri
             elif listener_type == "http":
                 tp.submit(listener_instance.start_server, control_structure)
 
-            time.sleep(0.25)
+            time.sleep(2)
             result_trigger = tp.submit(method_trigger_function, dcerpc_session, target)
 
         return process_test_results(control_structure, result_trigger)
