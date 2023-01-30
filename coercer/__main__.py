@@ -34,8 +34,6 @@ def parseArgs():
                                              help="Delay between attempts (in seconds)")
     mode_coerce_advanced_config.add_argument("--http-port", default=80, type=int, help="HTTP port (default: 80)")
     mode_coerce_advanced_config.add_argument("--smb-port", default=445, type=int, help="SMB port (default: 445)")
-    mode_coerce_advanced_config.add_argument("--always-continue", default=False, action="store_true",
-                                             help="Always continue to coerce")
     mode_coerce_advanced_config.add_argument("--auth-type", default="smb", type=str,
                                              help="Desired authentication type ('smb' or 'http').")
     # Filters
@@ -124,7 +122,7 @@ def main():
                 action_coerce(target, available_methods, options, credentials, reporter)
                 # Reporting results
                 if options.export_json is not None:
-                    reporter.export_json()
+                    reporter.export_json(options.export_json)
 
     print("[+] All done! Bye Bye!")
 

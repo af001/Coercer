@@ -43,7 +43,10 @@ def trigger_authentication(dcerpc_session, target, method_trigger_function):
 
 def process_test_results(control_structure, result_trigger):
 
-    result = str(result_trigger.result()).upper()
+    try:
+        result = str(result_trigger.result(timeout=10)).upper()
+    except AttributeError:
+        result = str(result_trigger)
 
     if control_structure["result"] == TestResult.NO_AUTH_RECEIVED:
         if "RPC_X_BAD_STUB_DATA" in result:

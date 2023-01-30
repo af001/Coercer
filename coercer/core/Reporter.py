@@ -35,7 +35,7 @@ class Reporter(object):
         if self.options.verbose:
             print(new_result)
 
-        if str(result.name) in Reporter.allowed_responses:
+        if str(result.name) in Reporter.allowed_responses or not self.options.scan:
             function_name = msprotocol_rpc_instance.function["name"]
 
             if uuid not in self.test_results.keys():
@@ -48,7 +48,7 @@ class Reporter(object):
                 self.test_results[uuid][version][function_name][named_pipe] = []
 
             # Save result to database
-            self.test_results[target][uuid][version][function_name][named_pipe].append(new_result)
+            self.test_results[uuid][version][function_name][named_pipe].append(new_result)
 
     def export_json(self, filename):
         base_path = os.path.dirname(filename)
