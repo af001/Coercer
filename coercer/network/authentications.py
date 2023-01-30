@@ -43,32 +43,26 @@ def trigger_authentication(dcerpc_session, target, method_trigger_function):
 
 def process_test_results(control_structure, result_trigger):
 
+    result = str(result_trigger.result()).upper()
+
     if control_structure["result"] == TestResult.NO_AUTH_RECEIVED:
-        if "rpc_x_bad_stub_data" in str(result_trigger):
+        if "RPC_X_BAD_STUB_DATA" in result:
             control_structure["result"] = TestResult.RPC_X_BAD_STUB_DATA
-
-        elif "nca_s_unk_if" in str(result_trigger):
+        elif "NCA_S_UNK_IF" in result:
             control_structure["result"] = TestResult.NCA_S_UNK_IF
-
-        elif "rpc_s_access_denied" in str(result_trigger):
+        elif "RPC_S_ACCESS_DENIED" in result:
             control_structure["result"] = TestResult.RPC_S_ACCESS_DENIED
-
-        elif "ERROR_BAD_NETPATH" in str(result_trigger):
+        elif "ERROR_BAD_NETPATH" in result:
             control_structure["result"] = TestResult.ERROR_BAD_NETPATH
-
-        elif "ERROR_INVALID_NAME" in str(result_trigger):
+        elif "ERROR_INVALID_NAME" in result:
             control_structure["result"] = TestResult.ERROR_INVALID_NAME
-
-        elif "STATUS_PIPE_DISCONNECTED" in str(result_trigger):
+        elif "STATUS_PIPE_DISCONNECTED" in result:
             control_structure["result"] = TestResult.SMB_STATUS_PIPE_DISCONNECTED
-
-        elif "STATUS_CONNECTION_DISCONNECTED" in str(result_trigger):
+        elif "STATUS_CONNECTION_DISCONNECTED" in result:
             control_structure["result"] = TestResult.SMB_STATUS_PIPE_DISCONNECTED
-
-        elif "RPC_S_INVALID_BINDING" in str(result_trigger):
+        elif "RPC_S_INVALID_BINDING" in result:
             control_structure["result"] = TestResult.RPC_S_INVALID_BINDING
-
-        elif "RPC_S_INVALID_NET_ADDR" in str(result_trigger):
+        elif "RPC_S_INVALID_NET_ADDR" in result:
             control_structure["result"] = TestResult.RPC_S_INVALID_NET_ADDR
 
     return control_structure["result"]

@@ -7,12 +7,11 @@
 import time
 
 from coercer.core.Filter import Filter
-from coercer.core.utils import generate_exploit_path_from_template, generate_tasks, generate_filter
+from coercer.core.utils import generate_exploit_path_from_template
 from coercer.network.DCERPCSession import DCERPCSession
 from coercer.structures.TestResult import TestResult
 from coercer.network.authentications import trigger_authentication, trigger_and_catch_authentication
 from coercer.network.smb import can_connect
-from coercer.network.utils import get_ip_addr_to_listen_on
 
 
 def action_coerce(target, available_methods, options, credentials, reporter):
@@ -37,18 +36,18 @@ def action_coerce(target, available_methods, options, credentials, reporter):
                         # Access through SMB named pipe
                         if access_type == "ncan_np":
                             for access_method in access_methods:
-                                namedpipe, uuid, version = access_method["namedpipe"], access_method["uuid"], access_method["version"]
-                                if namedpipe not in tasks[access_type].keys():
-                                    tasks[access_type][namedpipe] = {}
+                                named_pipe, uuid, version = access_method["namedpipe"], access_method["uuid"], access_method["version"]
+                                if named_pipe not in tasks[access_type].keys():
+                                    tasks[access_type][named_pipe] = {}
 
-                                if uuid not in tasks[access_type][namedpipe].keys():
-                                    tasks[access_type][namedpipe][uuid] = {}
+                                if uuid not in tasks[access_type][named_pipe].keys():
+                                    tasks[access_type][named_pipe][uuid] = {}
 
-                                if version not in tasks[access_type][namedpipe][uuid].keys():
-                                    tasks[access_type][namedpipe][uuid][version] = []
+                                if version not in tasks[access_type][named_pipe][uuid].keys():
+                                    tasks[access_type][named_pipe][uuid][version] = []
 
-                                if instance not in tasks[access_type][namedpipe][uuid][version]:
-                                    tasks[access_type][namedpipe][uuid][version].append(instance)
+                                if instance not in tasks[access_type][named_pipe][uuid][version]:
+                                    tasks[access_type][named_pipe][uuid][version].append(instance)
 
     if options.verbose:
         print(f"[+] Scanning '{target}' to authenticate to '{options.listener_ip}'")

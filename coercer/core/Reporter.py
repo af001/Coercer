@@ -16,7 +16,7 @@ class Reporter(object):
         self.options = options
         self.verbose = verbose
 
-        if self.options.export_json:
+        if self.options.export_json is not None:
             self.test_results = self.load_json()
             if self.test_results is None:
                 self.test_results = {}
@@ -45,12 +45,15 @@ class Reporter(object):
             "named_pipe": exploit_path
         })
 
-        if self.options.export_json:
+        if self.options.export_json is not None:
             self.export_json()
 
     def load_json(self):
-        if os.path.isfile(self.options.export_json):
-            with open(self.options.export_json, 'r') as f:
+        base_path = os.path.dirname(self.options.export_json)
+        filename = os.path.basename(self.options.export_json)
+        path_to_file = base_path + os.path.sep + filename
+        if os.path.isfile(path_to_file):
+            with open(path_to_file, 'r') as f:
                 return json.load(f)
         else:
             return None
