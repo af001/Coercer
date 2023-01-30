@@ -99,10 +99,10 @@ def action_coerce(target, available_methods, options, credentials, reporter):
                                             method_trigger_function=msprotocol_rpc_instance.trigger)
 
                                     reporter.report_test_result(
-                                        target=target, uuid=uuid, version=version, namedpipe=named_pipe,
+                                        target=target, uuid=uuid, version=version, named_pipe=named_pipe,
                                         msprotocol_rpc_instance=msprotocol_rpc_instance,
                                         result=result,
-                                        exploitpath=exploit_path)
+                                        exploit_path=exploit_path)
 
                                     if result == TestResult.NCA_S_UNK_IF:
                                         stop_exploiting_this_function = True
