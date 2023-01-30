@@ -26,11 +26,12 @@ class Reporter(object):
         # Create new dict entry
         new_result = {
             "target": target,
-            "access": {"npcan_np": {"namedpipe": named_pipe, "uuid": uuid, "version": version}},
+            "access": {"type": "npcan_np", "namedpipe": named_pipe, "uuid": uuid, "version": version},
             "function": msprotocol_rpc_instance.function,
             "protocol": msprotocol_rpc_instance.protocol,
             "test_result": result.name,
             "exploit_path": exploit_path
+
         }
 
         if self.options.verbose:
