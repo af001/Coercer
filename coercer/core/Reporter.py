@@ -19,36 +19,25 @@ class Reporter(object):
         super(Reporter, self).__init__()
         self.options = options
         self.verbose = verbose
-        self.test_results = {}
+        self.test_results = []
 
     def report_test_result(self, target, uuid, version, named_pipe, msprotocol_rpc_instance, result, exploit_path):
 
         # Create new dict entry
         new_result = {
             "target": target,
+            "access": {"npcan_np": {"namedpipe": named_pipe, "uuid": uuid, "version": version}},
             "function": msprotocol_rpc_instance.function,
             "protocol": msprotocol_rpc_instance.protocol,
             "test_result": result.name,
-            "named_pipe": exploit_path
+            "exploit_path": exploit_path
         }
 
         if self.options.verbose:
             print(new_result)
 
-        if str(result.name) in Reporter.allowed_responses or not self.options.scan:
-            function_name = msprotocol_rpc_instance.function["name"]
-
-            if uuid not in self.test_results.keys():
-                self.test_results[uuid] = {}
-            if version not in self.test_results[uuid].keys():
-                self.test_results[uuid][version] = {}
-            if function_name not in self.test_results[uuid][version].keys():
-                self.test_results[uuid][version][function_name] = {}
-            if named_pipe not in self.test_results[uuid][version][function_name].keys():
-                self.test_results[uuid][version][function_name][named_pipe] = []
-
-            # Save result to database
-            self.test_results[uuid][version][function_name][named_pipe].append(new_result)
+        if str(result.name) in Reporter.allowed_responses:
+            self.test_results.append(new_result)
 
     def export_json(self, filename):
         base_path = os.path.dirname(filename)
