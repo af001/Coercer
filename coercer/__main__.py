@@ -68,7 +68,7 @@ def parseArgs():
                                                  "of the target machines")
     # Listener
     listener_group = mode_coerce.add_argument_group("Listener")
-    listener_group.add_argument("-l", "--c-ip", required=True, type=str,
+    listener_group.add_argument("-l", "--listener-ip", required=True, type=str,
                                 help="IP address or hostname of the listener machine")
     # Scan
     scan_group = mode_coerce.add_argument_group("Scan")
