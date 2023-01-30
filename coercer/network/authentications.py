@@ -29,7 +29,7 @@ def trigger_and_catch_authentication(options, dcerpc_session, target, method_tri
             elif listener_type == "http":
                 tp.submit(listener_instance.start_server, control_structure)
 
-            time.sleep(2)
+            time.sleep(0.25)
             result_trigger = tp.submit(method_trigger_function, dcerpc_session, target)
 
         return process_test_results(control_structure, result_trigger)

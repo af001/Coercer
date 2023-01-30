@@ -30,13 +30,13 @@ def parseArgs():
     mode_coerce_advanced_config = mode_coerce.add_argument_group("Advanced configuration")
     mode_coerce_advanced_config.add_argument("--export-json", default=None, type=str, help="Export results to s"
                                                                                            "pecified JSON file.")
-    mode_coerce_advanced_config.add_argument("--delay", default=None, type=int,
+    mode_coerce_advanced_config.add_argument("--delay", default=0.25, type=int,
                                              help="Delay between attempts (in seconds)")
     mode_coerce_advanced_config.add_argument("--http-port", default=80, type=int, help="HTTP port (default: 80)")
     mode_coerce_advanced_config.add_argument("--smb-port", default=445, type=int, help="SMB port (default: 445)")
     mode_coerce_advanced_config.add_argument("--always-continue", default=False, action="store_true",
                                              help="Always continue to coerce")
-    mode_coerce_advanced_config.add_argument("--auth-type", default=None, type=str,
+    mode_coerce_advanced_config.add_argument("--auth-type", default="smb", type=str,
                                              help="Desired authentication type ('smb' or 'http').")
     # Filters
     mode_coerce_filters = mode_coerce.add_argument_group("Filtering")
