@@ -16,7 +16,7 @@ class Listener(object):
 
         self.smb_port = options.smb_port if options.smb_port else 445
         self.http_port = options.http_port if options.http_port else 80
-        self.timeout = timeout if timeout is not None else 2
+        self.timeout = timeout if timeout is not None else 1
         self.listen_ip = options.listener_ip if options.listener_ip is not None else '0.0.0.0'
         self.auth_type = options.auth_type if options.auth_type is not None else 'smb'
 
@@ -34,8 +34,7 @@ class Listener(object):
 
             try:
                 s.bind((self.listen_ip, port))
-            except Exception as e:
-                print(f'Error: {e}')
+            except Exception:
                 pass
             else:
                 s.listen(5)

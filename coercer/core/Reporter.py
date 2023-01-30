@@ -7,6 +7,8 @@
 import os
 import json
 
+from coercer.structures.TestResult import TestResult
+
 
 class Reporter(object):
     """Reporter Class"""
@@ -20,24 +22,17 @@ class Reporter(object):
     def report_test_result(self, target, uuid, version, named_pipe, msprotocol_rpc_instance, result, exploit_path):
         function_name = msprotocol_rpc_instance.function["name"]
 
-        if target not in self.test_results.keys():
-            self.test_results[target] = {}
-        if uuid not in self.test_results.keys():
-            self.test_results[target][uuid] = {}
-        if version not in self.test_results[target][uuid].keys():
-            self.test_results[target][uuid][version] = {}
-        if function_name not in self.test_results[target][uuid][version].keys():
-            self.test_results[target][uuid][version][function_name] = {}
-        if named_pipe not in self.test_results[target][uuid][version][function_name].keys():
-            self.test_results[target][uuid][version][function_name][named_pipe] = []
-
         # Save result to database
-        self.test_results[target][uuid][version][function_name][named_pipe].append({
-            "function": msprotocol_rpc_instance.function,
-            "protocol": msprotocol_rpc_instance.protocol,
-            "test_result": result.name,
-            "named_pipe": exploit_path
-        })
+        if result.name == TestResult.SMB_AUTH_RECEIVED or result.name == TestResult.HTTP_AUTH_RECEIVED:
+            self.test_results[target][uuid][version][function_name][named_pipe].append({
+                "function": msprotocol_rpc_instance.function,
+                "protocol": msprotocol_rpc_instance.protocol,
+                "test_result": result.name,
+                "named_pipe": exploit_path
+            })
+
+        if self.options.export_json:
+            self.export_json(self.options.export_json)
 
     def export_json(self, filename):
         base_path = os.path.dirname(filename)
