@@ -95,7 +95,6 @@ def parseArgs():
 
 def main():
     available_methods = find_and_load_coerce_methods()
-    print(available_methods.keys())
 
     lmhash, nthash, options = parseArgs()
 
@@ -123,9 +122,6 @@ def main():
             if try_login(credentials, target, verbose=options.verbose):
                 # Starting action
                 action_coerce(target, available_methods, options, credentials, reporter)
-                # Reporting results
-                if options.export_json is not None:
-                    reporter.export_json()
 
     print("[+] All done! Bye Bye!")
 

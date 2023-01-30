@@ -27,8 +27,8 @@ def action_coerce(target, available_methods, options, credentials, reporter):
         for category in sorted(available_methods[method_type].keys()):
             for method in sorted(available_methods[method_type][category].keys()):
                 instance = available_methods[method_type][category][method]["class"]
-
                 if _filter.method_matches_filter(instance):
+
                     for access_type, access_methods in instance.access.items():
                         if access_type not in tasks.keys():
                             tasks[access_type] = {}
