@@ -95,6 +95,7 @@ def parseArgs():
 
 def main():
     available_methods = find_and_load_coerce_methods()
+    print(available_methods.keys())
 
     lmhash, nthash, options = parseArgs()
 

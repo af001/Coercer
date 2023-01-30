@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # File name          : loader.py
 # Author             : Podalirius (@podalirius_)
-# Date created       : 18 Sep 2022
 
 
 import os
