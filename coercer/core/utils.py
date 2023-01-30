@@ -164,7 +164,7 @@ def generate_filter(filter_method_name, filter_protocol_name, filter_pipe_name):
 def generate_tasks(_filter, available_methods):
 
     tasks = {}
-    for method_type in available_methods.keys():
+    for method_type in available_methods:
         for category in sorted(available_methods[method_type].keys()):
             for method in sorted(available_methods[method_type][category].keys()):
                 instance = available_methods[method_type][category][method]["class"]

@@ -19,10 +19,8 @@ def action_coerce(target, available_methods, options, credentials, reporter):
     _filter = generate_filter(options.filter_protocol_name, options.filter_pipe_name, available_methods)
     tasks = generate_tasks(_filter, options.filter_method_name)
 
-    listening_ip = get_ip_addr_to_listen_on(target, options)
-
     if options.verbose:
-        print(f"[+] Scanning '{target}' to authenticate to '{listening_ip}'")
+        print(f"[+] Scanning '{target}' to authenticate to '{options.listener_ip}'")
 
     # Processing ncan_np tasks
     if tasks is None:
