@@ -7,9 +7,13 @@
 import os
 import json
 
+from coercer.structures.TestResult import TestResult
+
 
 class Reporter(object):
     """Reporter Class"""
+
+    allowed_response = [TestResult.HTTP_AUTH_RECEIVED, TestResult.SMB_AUTH_RECEIVED]
 
     def __init__(self, options, verbose=False):
         super(Reporter, self).__init__()
@@ -18,6 +22,7 @@ class Reporter(object):
 
         if self.options.export_json is not None:
             self.test_results = self.load_json()
+            print('reloading')
             if self.test_results is None:
                 self.test_results = {}
         else:
@@ -26,16 +31,14 @@ class Reporter(object):
     def report_test_result(self, target, uuid, version, named_pipe, msprotocol_rpc_instance, result, exploit_path):
         function_name = msprotocol_rpc_instance.function["name"]
 
-        if target not in self.test_results.keys():
-            self.test_results[target] = {}
         if uuid not in self.test_results.keys():
-            self.test_results[target][uuid] = {}
-        if version not in self.test_results[target][uuid].keys():
-            self.test_results[target][uuid][version] = {}
-        if function_name not in self.test_results[target][uuid][version].keys():
-            self.test_results[target][uuid][version][function_name] = {}
-        if named_pipe not in self.test_results[target][uuid][version][function_name].keys():
-            self.test_results[target][uuid][version][function_name][named_pipe] = []
+            self.test_results[uuid] = {}
+        if version not in self.test_results[uuid].keys():
+            self.test_results[uuid][version] = {}
+        if function_name not in self.test_results[uuid][version].keys():
+            self.test_results[uuid][version][function_name] = {}
+        if named_pipe not in self.test_results[uuid][version][function_name].keys():
+            self.test_results[uuid][version][function_name][named_pipe] = []
 
         # Create new dict entry
         new_result = {
@@ -47,12 +50,14 @@ class Reporter(object):
         }
 
         # Save result to database
-        self.test_results[target][uuid][version][function_name][named_pipe].append(new_result)
+        if str(result.name) in Reporter.allowed_response:
+            self.test_results[target][uuid][version][function_name][named_pipe].append(new_result)
 
         if self.options.export_json is not None:
             self.export_json()
 
-        print(new_result)
+        if self.options.verbose:
+            print(new_result)
 
     def load_json(self):
         base_path = os.path.dirname(self.options.export_json)
