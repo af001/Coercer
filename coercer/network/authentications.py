@@ -20,7 +20,7 @@ def trigger_and_catch_authentication(options, dcerpc_session, target, method_tri
         control_structure = {"result": TestResult.NO_AUTH_RECEIVED}
         # Waits for all the threads to be completed
 
-        with ThreadPoolExecutor(max_workers=10) as tp:
+        with ThreadPoolExecutor(max_workers=5) as tp:
             listener_instance = Listener(options=options)
 
             if listener_type == "smb":
@@ -31,6 +31,8 @@ def trigger_and_catch_authentication(options, dcerpc_session, target, method_tri
 
             time.sleep(0.25)
             result_trigger = tp.submit(method_trigger_function, dcerpc_session, target)
+
+            print(result_trigger)
 
         return process_test_results(control_structure, result_trigger)
 

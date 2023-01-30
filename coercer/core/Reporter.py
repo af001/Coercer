@@ -19,6 +19,7 @@ class Reporter(object):
 
     def report_test_result(self, target, uuid, version, named_pipe, msprotocol_rpc_instance, result, exploit_path):
         function_name = msprotocol_rpc_instance.function["name"]
+
         if target not in self.test_results.keys():
             self.test_results[target] = {}
         if uuid not in self.test_results.keys():
