@@ -46,6 +46,9 @@ class Reporter(object):
         if str(result.name) in Reporter.allowed_responses:
             self.test_results.append(new_result)
 
+        if self.options.export_json is not None:
+            self.export_json()
+
     def load_json(self):
         base_path = os.path.dirname(self.options.export_json)
         filename = os.path.basename(self.options.export_json)
