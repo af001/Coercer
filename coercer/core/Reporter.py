@@ -19,7 +19,13 @@ class Reporter(object):
         super(Reporter, self).__init__()
         self.options = options
         self.verbose = verbose
-        self.test_results = []
+
+        if self.options.export_json is not None:
+            self.test_results = self.load_json()
+            if self.test_results is None:
+                self.test_results = []
+        else:
+            self.test_results = []
 
     def report_test_result(self, target, uuid, version, named_pipe, msprotocol_rpc_instance, result, exploit_path):
 
@@ -40,9 +46,19 @@ class Reporter(object):
         if str(result.name) in Reporter.allowed_responses:
             self.test_results.append(new_result)
 
-    def export_json(self, filename):
-        base_path = os.path.dirname(filename)
-        filename = os.path.basename(filename)
+    def load_json(self):
+        base_path = os.path.dirname(self.options.export_json)
+        filename = os.path.basename(self.options.export_json)
+        path_to_file = base_path + os.path.sep + filename
+        if os.path.isfile(path_to_file):
+            with open(path_to_file, 'r') as f:
+                return json.load(f)
+        else:
+            return None
+
+    def export_json(self):
+        base_path = os.path.dirname(self.options.export_json)
+        filename = os.path.basename(self.options.export_json)
         if base_path not in [".", ""]:
             if not os.path.exists(base_path):
                 os.makedirs(base_path)
