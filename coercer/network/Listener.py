@@ -72,7 +72,6 @@ class Listener(object):
                 s = socket(AF_PACKET, SOCK_RAW, 0x0800)
                 s.setsockopt(SOL_SOCKET, SO_ATTACH_FILTER, fprog)
                 s.bind((self.interface, 0x0800))
-                s.settimeout(self.timeout)
             except Exception as e:
                 print(f'exception: {e}')
                 pass
