@@ -21,7 +21,6 @@ class Listener(object):
         self.timeout = timeout if timeout is not None else 1
         self.listen_ip = options.listener_ip if options.listener_ip is not None else '0.0.0.0'
         self.auth_type = options.auth_type if options.auth_type is not None else 'smb'
-        self.interface = options.interface if options.interface is not None else None
 
     def start_server(self, control_structure):
 
