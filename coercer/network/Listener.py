@@ -6,9 +6,7 @@
 import socket
 import time
 from binascii import hexlify
-from ctypes import create_string_buffer, addressof
-from socket import socket, AF_PACKET, SOCK_RAW, SOL_SOCKET, IPPROTO_RAW
-from struct import pack, unpack
+from socket import socket, AF_PACKET, SOCK_RAW, IP_HDRINCL, IPPROTO_IP, IPPROTO_RAW
 from coercer.structures.TestResult import TestResult
 
 
@@ -25,53 +23,18 @@ class Listener(object):
         self.auth_type = options.auth_type if options.auth_type is not None else 'smb'
         self.interface = options.interface if options.interface is not None else None
 
-    @staticmethod
-    def bpf_jump(code, k, jt, jf):
-        return pack(b'HBBI', code, jt, jf, k)
-
-    def bpf_stmt(self, code, k):
-        return self.bpf_jump(code, k, 0, 0)
-
     def start_server(self, control_structure):
-        # Instruction classes
-        BPF_LD = 0x00
-        BPF_JMP = 0x05
-
-        # ld/ldx fields
-        BPF_H = 0x08
-        BPF_ABS = 0x20
-
-        # alu/jmp fields
-        BPF_JEQ = 0x10
-        BPF_K = 0x00
-
-        # Ordering of the filters is backwards of what would be intuitive for
-        # performance reasons: the check that is most likely to fail is first.
-        filters_list = [
-            self.bpf_stmt(BPF_LD | BPF_H | BPF_ABS, 36),
-            self.bpf_jump(BPF_JMP | BPF_JEQ | BPF_K, 80, 1, 0),
-            self.bpf_jump(BPF_JMP | BPF_JEQ | BPF_K, 445, 0, 0),
-        ]
-
-        # Create filters struct and fprog struct to be used by SO_ATTACH_FILTER, as
-        # defined in linux/filter.h.
-        filters = b''.join(filters_list)
-        b = create_string_buffer(filters)
-        mem_addr_of_filters = addressof(b)
-        fprog = pack(b'HL', len(filters_list), mem_addr_of_filters)
-
-        # As defined in asm/socket.h
-        SO_ATTACH_FILTER = 26
 
         start_time = int(time.time())
         stop_time = start_time + self.timeout
         while (int(time.time()) < stop_time) and control_structure["result"] == TestResult.NO_AUTH_RECEIVED:
 
+            # Create listening socket with filters
+            s = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)
+            s.setsockopt(IPPROTO_IP, IP_HDRINCL, 1)
+
             try:
-                # Create listening socket with filters
-                s = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)
-                s.setsockopt(SOL_SOCKET, SO_ATTACH_FILTER, fprog)
-                s.bind((self.interface, 0x0800))
+                s.bind((self.listen_ip, 0))
             except Exception as e:
                 print(f'exception: {e}')
                 pass
