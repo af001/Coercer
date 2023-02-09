@@ -73,10 +73,11 @@ class Listener(object):
                 s.setsockopt(SOL_SOCKET, SO_ATTACH_FILTER, fprog)
                 s.bind((self.interface, 0x0800))
                 s.settimeout(self.timeout)
-            except Exception:
+            except Exception as e:
+                print(f'exception: {e}')
                 pass
             else:
-                data, addr = s.recvfrom(65565)
+                data, addr = s.recvfrom(1024)
                 print('got data from', addr, ':', hexlify(data))
 
                 if data.startswith(b'\x00\x00\x00') and b'SMB' in data:
