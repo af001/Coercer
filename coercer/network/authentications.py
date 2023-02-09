@@ -23,11 +23,7 @@ def trigger_and_catch_authentication(options, dcerpc_session, target, method_tri
         with ThreadPoolExecutor(max_workers=3) as tp:
             listener_instance = Listener(options=options)
 
-            if listener_type == "smb":
-                tp.submit(listener_instance.start_server, control_structure)
-
-            elif listener_type == "http":
-                tp.submit(listener_instance.start_server, control_structure)
+            tp.submit(listener_instance.start_server, control_structure)
 
             time.sleep(0.25)
             result_trigger = tp.submit(method_trigger_function, dcerpc_session, target)
