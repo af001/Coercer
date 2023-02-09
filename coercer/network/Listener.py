@@ -58,7 +58,7 @@ class Listener(object):
         filters = b''.join(filters_list)
         b = create_string_buffer(filters)
         mem_addr_of_filters = addressof(b)
-        fprog = pack('HL', len(filters_list), mem_addr_of_filters)
+        fprog = pack(b'HL', len(filters_list), mem_addr_of_filters)
 
         # As defined in asm/socket.h
         SO_ATTACH_FILTER = 26
