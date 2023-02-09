@@ -7,7 +7,7 @@ import socket
 import time
 from binascii import hexlify
 from ctypes import create_string_buffer, addressof
-from socket import socket, AF_PACKET, SOCK_RAW, SOL_SOCKET
+from socket import socket, AF_PACKET, SOCK_RAW, SOL_SOCKET, IPPROTO_RAW
 from struct import pack, unpack
 from coercer.structures.TestResult import TestResult
 
@@ -69,7 +69,7 @@ class Listener(object):
 
             try:
                 # Create listening socket with filters
-                s = socket(AF_PACKET, SOCK_RAW, 0x0800)
+                s = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)
                 s.setsockopt(SOL_SOCKET, SO_ATTACH_FILTER, fprog)
                 s.bind((self.interface, 0x0800))
             except Exception as e:
